@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <title>🔗 লিংক ম্যানেজার</title>
+  <script type="module">
+    // Firebase SDK ইমপোর্ট
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getDatabase, ref, push, set, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+    // ✅ আপনার Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyC17r-Ty3DKLu9Z64WdZwG9xYYerHJRcwI",
+      authDomain: "link-management-89e96.firebaseapp.com",
+      projectId: "link-management-89e96",
+      storageBucket: "link-management-89e96.firebasestorage.app",
+      messagingSenderId: "909617203357",
+      appId: "1:909617203357:web:8103ba9e46b0e13cc1ac74",
+      databaseURL: "https://link-management-89e96-default-rtdb.firebaseio.com"
+    };
+
+    // Firebase শুরু করুন
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // 🔹 লিংক যুক্ত করার ফাংশন
+    function addLink(link) {
+      const linkRef = ref(db, 'links/');
+      const newLink = push(linkRef);
+      set(newLink, { url: link });
+    }
+
+    // 🔸 লিংক মুছে ফেলার ফাংশন
+    function deleteLink(key) {
+      remove(ref(db, 'links/' + key));
+    }
+
+    // 🔍 লিংক দেখানোর ফাংশন
+    const listContainer = document.getElementById("linkList");
+    const linkRef = ref(db, 'links/');
+
+    onValue(linkRef, (snapshot) => {
+      listContainer.innerHTML = "";
+      snapshot.forEach(child => {
+        const key = child.key;
+        const link = child.val().url;
+        const li = document.createElement("li");
+        li.innerHTML = `<a href="${link}" target="_blank">${link}</a> 
+          <button onclick="deleteLink('${key}')">❌</button>`;
+        listContainer.appendChild(li);
+      });
+    });
+
+    // Submit বাটনে ক্লিক করলে নতুন লিংক add হবে
+    window.addEventListener('DOMContentLoaded', () => {
+      document.getElementById("addLinkForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const link = document.getElementById("linkInput").value;
+        addLink(link);
+        document.getElementById("linkInput").value = "";
+      });
+    });
+
+    // deleteLink globally accessible
+    window.deleteLink = deleteLink;
+  </script>
+</head>
+<body style="font-family: sans-serif; padding: 20px;">
+  <h2>📌 নতুন লিংক যুক্ত করুন</h2>
+  <form id="addLinkForm">
+    <input type="text" id="linkInput" placeholder="এখানে লিংক দিন..." required style="padding: 5px; width: 250px;">
+    <button type="submit">➕ Add</button>
+  </form>
+
+  <h3>✅ বর্তমান লিংকসমূহ:</h3>
+  <ul id="linkList" style="list-style: none; padding-left: 0;"></ul>
+</body>
+  </html>
